@@ -3067,7 +3067,7 @@
 			-ms-flex: 1;
 		}
 
-			.spotlights > section > .content > .inner {
+			.spotlights > section > .content > .inners {
 				-moz-transform: translateX(0) translateY(0);
 				-webkit-transform: translateX(0) translateY(0);
 				-ms-transform: translateX(0) translateY(0);
