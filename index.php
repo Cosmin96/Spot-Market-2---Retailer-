@@ -23,7 +23,7 @@
 		<script src="assets/js/util.js"></script>
 		<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
 		<script src="assets/js/main.js"></script>
-		<script src="assets/js/mapCanvas.js"></script>
+		<script src="assets/js/zonesMapCanvas.js"></script>
 	</head>
 	<body>
 
@@ -33,6 +33,7 @@
 				<nav>
 					<ul>
 						<li><a href="#intro">Welcome</a></li>
+						<li><a id="beaconsNav" href="#beacons"">Place your beacons</a></li>
 						<li><a href="#one">Who we are</a></li>
 						<li><a href="#two">What we do</a></li>
 						<li><a href="#three">Get in touch</a></li>
@@ -94,13 +95,13 @@
 	                    ?>         
 	                                        Upload successfully!
 	                                        <br>Preview:<br><br>
-
-	                                        <canvas id="mapCanvas" class="canvas"></canvas>
+	                                        <canvas id="zonesMapCanvas" class="canvas"></canvas>
 										    <script>
 										    	var mapImage = new Image();
 										        mapImage.src = <?PHP echo "\"files/".$name."\""; ?>;
-										        //startCanvas();
 										    </script>
+										    <br><br>
+				  							<a id="submitZonesButton" class="button">Submit</a>
 	                    <?PHP
 	                                        break;
 	                                    case 1:
@@ -126,6 +127,14 @@
 		                ?>
 		                
 		                <br>
+					</div>
+				</section>
+
+				<section id="beacons" class="wrapper style1 fullscreen fade-up" style="display: none">
+					<div class="inner">
+						<h1>Place your beacons:</h1>
+						<br>
+						<canvas id="beaconsMapCanvas" class="canvas"></canvas>
 					</div>
 				</section>
 
