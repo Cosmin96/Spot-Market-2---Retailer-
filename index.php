@@ -15,15 +15,7 @@
 		<!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
 		<!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
 
-		<!-- Scripts -->
-		<script src="assets/js/jquery.min.js"></script>
-		<script src="assets/js/jquery.scrollex.min.js"></script>
-		<script src="assets/js/jquery.scrolly.min.js"></script>
-		<script src="assets/js/skel.min.js"></script>
-		<script src="assets/js/util.js"></script>
-		<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
-		<script src="assets/js/main.js"></script>
-		<script src="assets/js/zonesMapCanvas.js"></script>
+
 	</head>
 	<body>
 
@@ -33,7 +25,7 @@
 				<nav>
 					<ul>
 						<li><a href="#intro">Welcome</a></li>
-						<li><a id="beaconsNav" href="#beacons"">Place your beacons</a></li>
+						<li><a id="beaconsNav" href="#beacons">Place your beacons</a></li>
 						<li><a href="#one">Who we are</a></li>
 						<li><a href="#two">What we do</a></li>
 						<li><a href="#three">Get in touch</a></li>
@@ -102,7 +94,7 @@
 										    </script>
 										    <br><br>
 				  							<a id="submitZonesButton" class="button">Submit</a>
-	                    <?PHP
+	                    <?php
 	                                        break;
 	                                    case 1:
 	                                        echo "Exceed file size, set in php.ini file";
@@ -302,6 +294,14 @@
 		</footer>
 
 		
-
+		<!-- Scripts -->
+		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.scrollex.min.js"></script>
+		<script src="assets/js/jquery.scrolly.min.js"></script>
+		<script src="assets/js/skel.min.js"></script>
+		<script src="assets/js/util.js"></script>
+		<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+		<script src="assets/js/main.js"></script>
+		<script src="assets/js/zonesMapCanvas.js"></script>
 	</body>
 </html>
