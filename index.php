@@ -48,74 +48,80 @@
                             <input type="submit" value="Upload" />
                         </form>
                         <?PHP
-	                        if(is_uploaded_file($_FILES['upfile']['tmp_name'])){
+                        	if(isset($_FILES['upfile']))
+	                        {
+	                        	if(is_uploaded_file($_FILES['upfile']['tmp_name'])){
 	                
-	                            //save the uploaded file information
-	                            $name=$_FILES["upfile"]["name"];//Upload file name
-	                            $type=$_FILES["upfile"]["type"];//Upload file type 
-	                            $size=$_FILES["upfile"]["size"];//Upload file size
-	                            $tmp_name=$_FILES["upfile"]["tmp_name"];//Upload file temparary path
-	            
-	                            //check if img 
-	                            switch ($type){
-	                                case 'image/pjpeg':
-	                                        $okType=true;
-	                                        break;
-	                                case 'image/jpeg':
-	                                        $okType=true;
-	                                        break;
-	                                case 'image/gif':
-	                                        $okType=true;
-	                                        break;
-	                                case 'image/png':
-	                                        $okType=true;
-	                                        break;
-	                            }
-	            
-	                            if($okType === true){
-	            
-	                                $error=$_FILES["upfile"]["error"];//return value after upload
-	        
-	                                //move the temparary file path to a specific path
-	                                $destination="/var/www/retailer/files/".$name;
-	                                move_uploaded_file($tmp_name,$destination);
-	                                $isMoved = move_uploaded_file($tmp_name,$destination);
-	                                echo $isMoved;
-	        
-	                                switch ($error) {
-	                                    case 0:
-	                    ?>         
-	                                        Upload successfully!
-	                                        <br>Preview:<br><br>
-	                                        <canvas id="zonesMapCanvas" class="canvas"></canvas>
-										    <script>
-										    	var mapImage = new Image();
-										        mapImage.src = <?PHP echo "\"files/".$name."\""; ?>;
-										    </script>
-										    <br><br>
-				  							<a id="submitZonesButton" class="button">Submit</a>
-	                    <?php
-	                                        break;
-	                                    case 1:
-	                                        echo "Exceed file size, set in php.ini file";
-	                                        break;
-	                                    case 2:
-	                                        echo "Exceed MAX_FILE_SIZE";
-	                                        break;
-	                                    case 3:
-	                                        echo "Incomplete Upload";
-	                                        break;
-	                                    case 4:
-	                                        echo "Nothing Uploaded";
-	                                        break;
-	                                    default:
-	                                        echo "Upload file size is 0";
-	                                        break;
-	                                }
-	                            }else{
-	                                echo "Unrecognized type！";
-	                            }
-	                        }
+		                            //save the uploaded file information
+		                            $name=$_FILES["upfile"]["name"];//Upload file name
+		                            $type=$_FILES["upfile"]["type"];//Upload file type 
+		                            $size=$_FILES["upfile"]["size"];//Upload file size
+		                            $tmp_name=$_FILES["upfile"]["tmp_name"];//Upload file temparary path
+		            
+		                            //check if img 
+		                            switch ($type){
+		                                case 'image/pjpeg':
+		                                        $okType=true;
+		                                        break;
+		                                case 'image/jpg':
+		                                        $okType=true;
+		                                        break;
+		                                case 'image/jpeg':
+		                                        $okType=true;
+		                                        break;
+		                                case 'image/gif':
+		                                        $okType=true;
+		                                        break;
+		                                case 'image/png':
+		                                        $okType=true;
+		                                        break;
+		                            }
+		            
+		                            if($okType === true){
+		            
+		                                $error=$_FILES["upfile"]["error"];//return value after upload
+		        
+		                                //move the temparary file path to a specific path
+		                                $destination="/var/www/retailer/files/".$name;
+		                                move_uploaded_file($tmp_name,$destination);
+		                                $isMoved = move_uploaded_file($tmp_name,$destination);
+		                                echo $isMoved;
+		        
+		                                switch ($error) {
+		                                    case 0:
+		                    ?>         
+		                                        Upload successfully!
+		                                        <br>Preview:<br><br>
+		                                        <canvas id="zonesMapCanvas" class="canvas"></canvas>
+											    <script>
+											    	var mapImage = new Image();
+											        mapImage.src = <?PHP echo "\"files/".$name."\""; ?>;
+											    </script>
+											    <br><br>
+					  							<a id="submitZonesButton" class="button">Submit</a>
+		                    <?php
+		                                        break;
+		                                    case 1:
+		                                        echo "Exceed file size, set in php.ini file";
+		                                        break;
+		                                    case 2:
+		                                        echo "Exceed MAX_FILE_SIZE";
+		                                        break;
+		                                    case 3:
+		                                        echo "Incomplete Upload";
+		                                        break;
+		                                    case 4:
+		                                        echo "Nothing Uploaded";
+		                                        break;
+		                                    default:
+		                                        echo "Upload file size is 0";
+		                                        break;
+		                                }
+		                            }else{
+		                                echo "Unrecognized type！";
+		                            }
+		                        }
+		                    }
 		                ?>
 		                
 		                <br>
