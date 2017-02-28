@@ -41,7 +41,7 @@
 				<section id="intro" class="wrapper style1 fullscreen fade-up">
 					<div class="inner">
 						<h1>Upload your store's map</h1>
-						<form action="index.php" enctype="multipart/form-data" method="post" name="uploadfile">
+						<form action="map.php" enctype="multipart/form-data" method="post" name="uploadfile">
                             Uploaded file：
                             <input type="file" name="upfile" />
                             <br> 
@@ -125,6 +125,7 @@
 		                            }
 		                        }
 		                    }
+		                    return false;
 		                ?>
 		                
 		                <br>
