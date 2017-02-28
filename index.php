@@ -89,13 +89,8 @@ input:focus { box-shadow: inset 0 -5px 45px rgba(100,100,100,0.4), 0 1px 1px rgb
     function login(){
         var user = $("#username").val();
     	var pass = $("#password").val();
-    	console.log(user);
-    	console.log(pass);
     	if(user==="admin" && pass==="admin"){
-    		console.log("Success");
-    		console.log(window.location.href);
     		window.location.href = "map.php";
-    		console.log(location.href);
     	}
     
     }
