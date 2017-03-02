@@ -25,6 +25,7 @@
 				<nav>
 					<ul>
 						<li><a href="#intro">Upload a map</a></li>
+						<li><a id="zones" href="#zonesMapCanvas">Select Zones</a></li>
 						<li><a id="beaconsNav" href="#beacons">Place your beacons</a></li>
 					</ul>
 				</nav>
@@ -146,6 +147,19 @@
 				  			<input id="zoneNoInput" type="text">
 				  			<br>
 				  			<a id="saveZoneNoButton" class="button">Save</a>
+				  		</center>
+				  	</div>
+				</div>
+
+				<div id="beaconPopup" class="modal">
+					<div id="beaconPopupContent" class="modal-content">
+				  		<center>
+				  			What is this beacon's id?
+				  			<br><br>
+				  			<input id="beaconIdInput" type="text">
+				  			<br>
+				  			<a id="saveBeaconButton" class="button">Save</a>
+				  			<a id="deleteBeaconButton" class="button">Delete Beacon</a>
 				  		</center>
 				  	</div>
 				</div>
