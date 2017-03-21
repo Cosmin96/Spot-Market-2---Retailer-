@@ -10,7 +10,7 @@ $(document).ready(function() {
     var context;
     var beaconsCanvas;
 
-    var zones = new Array(100);
+    var zones = [];
 	var noOfZones = 0;
 	var highlightedZone = -1;
 	var clickedZone = -1;
@@ -34,6 +34,8 @@ $(document).ready(function() {
 		x = x*document.getElementById("zonesMapCanvas").width/(rect.right-rect.left);
 		y = y*document.getElementById("zonesMapCanvas").height/(rect.bottom-rect.top);
 		var alpha = context.getImageData(x, y, 1, 1).data[3];
+		
+		//console.log(x + " " + y);
 		
 		if(alpha !== 0 && clickedZone == -1){
 
@@ -90,13 +92,18 @@ $(document).ready(function() {
 					zones[j] = aux;
 				}
 			}
-		var str = "x1, y1, x2, y2, no\n";
+		var str = "Number of vertices, Vertices' coordinates, Zone ID\n";
 		for(var i=0; i<noOfZones; i++){
-			var x1 = zones[i].x1 / canvas.width;
-			var y1 = zones[i].y1 / canvas.height;
-			var x2 = zones[i].x2 / canvas.width;
-			var y2 = zones[i].y2 / canvas.height;
-			str = str+x1+", "+y1+", "+x2+", "+y2+", "+zones[i].no+"\n"; 
+			str = str + zones[i].vertices.length + ", ";
+			for(j=0; j<zones[i].vertices.length; j++){
+				str = str + zones[i].vertices[j].x + ", " + zones[i].vertices[j].y + ", ";
+			}
+			str = str + zones[i].no + "\n";
+			// var x1 = zones[i].x1 / canvas.width;
+			// var y1 = zones[i].y1 / canvas.height;
+			// var x2 = zones[i].x2 / canvas.width;
+			// var y2 = zones[i].y2 / canvas.height;
+			// str = str+x1+", "+y1+", "+x2+", "+y2+", "+zones[i].no+"\n"; 
 		}
 
 		var fileNameLength = mapImage.src.lastIndexOf('.') - mapImage.src.lastIndexOf('/') - 1;
@@ -128,7 +135,8 @@ $(document).ready(function() {
 
 		var pos = {x: x, y: y};
 
-		//if(alpha == 255){
+		if(alpha == 255){
+
 			for(var i = 1; i <= numBeacons; i++){
 				if(dist(beacons[i].pos, pos) < beaconCircleRadius){
 					clickedBeacon = i;
@@ -140,7 +148,7 @@ $(document).ready(function() {
 			addBeacon(pos);
 
 			drawBeaconMap();
-		//}
+		}
 		//closePopup();
 	});
 
@@ -288,41 +296,59 @@ $(document).ready(function() {
 					createZone(j, i);
 				}
 			}
-		// console.log(noOfZones);
-		// for(var i=0; i<noOfZones; i++){
-		// 	console.log(zones[i].x1 + " " + zones[i].y1 + " " + zones[i].x2 + " " + zones[i].y2);
-		// }
+		// print zones for testing
 	}
 
 	function createZone(x, y) {
 
+		//console.log(x + " " + y);
+
+		// array for changing direction on the map: 0 for left, 1 for up, 2 for right, 3 for down
+		var dir = [{x: -1, y: 0}, {x: 0, y: -1}, {x: 1, y: 0}, {x: 0, y: 1}];
+
 		hexColor = getPixelHexColor(x,y);
 
-		while(hexColor === getPixelHexColor(x,y)){
-			y--;
-		}
-		y++;
 		while(hexColor === getPixelHexColor(x,y)){
 			x--;
 		}
 		x++;
+
 		var cx = x;
 		var cy = y;
+		var currDir = 1;
+		var newDir = 1;
+		var noOfVertices = 0;
+		
+		zones.push({no: noOfZones+1, vertices: []});
+		//zones[noOfZones] = [];
 
-		while(hexColor === getPixelHexColor(x,y)){
-			x+=10;
-		}
-		while(hexColor !== getPixelHexColor(x,y)){
-			x--;
-		}
-		while(hexColor === getPixelHexColor(x,y)){
-			y+=10;
-		}
-		while(hexColor !== getPixelHexColor(x,y)){
-			y--;
-		}
+		do {
+			for(var d=-1; d<=2; d++) {
+				if(hexColor == getPixelHexColor(x+dir[(currDir+d+4)%4].x, y+dir[(currDir+d+4)%4].y)){
+					newDir = (currDir+d+4)%4;
+					break;
+				}
+			}
+			if(newDir != currDir){
+				//console.log(noOfVertices + " " + hexColor + " " + getPixelHexColor(x+dir[currDir].x, y+dir[currDir].y));
+				//console.log(x + " " + y + " " + cx + " " + cy);
+				//console.log(currDir + " " + newDir);
+				noOfVertices++;
+				currDir = newDir;
+				zones[noOfZones].vertices.push({x: x, y: y});
+			}
+			x = x+dir[currDir].x;
+			y = y+dir[currDir].y;
 
-		zones[noOfZones++] = {x1: cx, y1: cy, x2: x+1, y2: y+1, no: noOfZones};
+		} while((x!=cx || y!=cy));
+
+		/*console.log(zones[noOfZones].vertices.length);
+		for(i=0; i<noOfVertices; i++){
+			//console.log(i);
+			console.log(noOfZones + ": " + zones[noOfZones].vertices[i].x + ", " + zones[noOfZones].vertices[i].y);
+		}*/
+
+		noOfZones++;
 	}
 
 	function getPixelHexColor(x, y) {
@@ -330,14 +356,31 @@ $(document).ready(function() {
 		var r = pixelData.data[0];
 		var g = pixelData.data[1];
 		var b = pixelData.data[2];
+		var alpha = pixelData.data[3];
+		if(alpha != 255)
+			return "";
 		return r.toString(16) + g.toString(16) + b.toString(16);
+	}
+
+	function pointInPolygon(point, polygon) {
+
+		var i, j;
+		var c = false;
+
+		for(i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+	    	if(((polygon[i].y >= point.y ) != (polygon[j].y >= point.y) ) && (point.x <= (polygon[j].x - polygon[i].x) * (point.y - polygon[i].y) / (polygon[j].y - polygon[i].y) + polygon[i].x))
+	      		c = !c;
+	      	if((polygon[i].y == polygon[j].y && polygon[i].y == point.y) || (polygon[i].x == polygon[j].x && polygon[i].x == point.x))
+				return true;
+		}
+
+		return c;
 	}
 
 	function getZone(x, y) {
 		for(var i=0; i<noOfZones; i++) {
-			if(x>=zones[i].x1 && y>=zones[i].y1)
-				if(x<=zones[i].x2 && y<=zones[i].y2)
-					return i;
+			if(pointInPolygon({x: x, y: y}, zones[i].vertices))
+				return i;
 		}
 		return -1;
 	}
@@ -352,7 +395,15 @@ $(document).ready(function() {
 			zone = zones[zoneNo];
 			context.globalAlpha = 0.1;
 		    context.fillStyle = "black"; 
-			context.fillRect(zone.x1, zone.y1, zone.x2-zone.x1, zone.y2-zone.y1); 
+		    //context.strokeStyle = "black"; 
+		    context.beginPath();
+		    context.moveTo(zones[zoneNo].vertices[0].x, zones[zoneNo].vertices[0].y);
+		    for(var i=1; i<zones[zoneNo].vertices.length; i++)
+		    	context.lineTo(zones[zoneNo].vertices[i].x, zones[zoneNo].vertices[i].y);
+		    context.closePath();
+		    context.fill();
+		    //context.stroke();
+			//context.fillRect(zone.x1, zone.y1, zone.x2-zone.x1, zone.y2-zone.y1); 
 		}
 	}
 
@@ -366,34 +417,15 @@ $(document).ready(function() {
 				zone = zones[i];
 				context.globalAlpha = 0.7;
 			    context.fillStyle = "black"; 
+			    context.beginPath();
+			    context.moveTo(zones[i].vertices[0].x, zones[i].vertices[0].y);
+			    for(var j=1; j<zones[i].vertices.length; j++)
+			    	context.lineTo(zones[i].vertices[j].x, zones[i].vertices[j].y);
+			    context.closePath();
+			    context.fill();
 				context.fillRect(zone.x1, zone.y1, zone.x2-zone.x1, zone.y2-zone.y1); 
 			}
 		}
-	}
-
-	function showPopup(x, y) {
-		$("#popup").show();
-
-		document.getElementById("zoneNoInput").value = zones[clickedZone].no;
-
-		var newX = x + 40;
-		var newY = y - (parseInt($("#popup-content").css("height"),10))/2;
-
-		if(newX+(parseInt($("#popup-content").css("width"),10))+10 > window.innerWidth)
-			newX = x - parseInt($("#popup-content").css("width"),10) - 40;
-		if(newY < 10)
-			newY = 10;
-		if(newY+parseInt($("#popup-content").css("height"),10)+10 > window.innerHeight)
-			newY = window.innerHeight - parseInt($("#popup-content").css("height"),10) - 10;
-
-		// newY = window.innerHeight - parseInt($("#popup-content").css("height"),10) - 10;
-		// newX = window.innerWidth - parseInt($("#popup-content").css("width"),10) - 30;
-
-
-		document.getElementById('popup-content').style.left = newX + "px";
-		document.getElementById('popup-content').style.top = newY + "px";
-
-		highlightClicked(clickedZone);
 	}
 
 	function highlightClickedBeacon(beaconIndex) {
@@ -498,6 +530,31 @@ $(document).ready(function() {
 		}
 	}
 
+	function showPopup(x, y) {
+		$("#popup").show();
+
+		document.getElementById("zoneNoInput").value = zones[clickedZone].no;
+
+		var newX = x + 40;
+		var newY = y - (parseInt($("#popup-content").css("height"),10))/2;
+
+		if(newX+(parseInt($("#popup-content").css("width"),10))+10 > window.innerWidth)
+			newX = x - parseInt($("#popup-content").css("width"),10) - 40;
+		if(newY < 10)
+			newY = 10;
+		if(newY+parseInt($("#popup-content").css("height"),10)+10 > window.innerHeight)
+			newY = window.innerHeight - parseInt($("#popup-content").css("height"),10) - 10;
+
+		// newY = window.innerHeight - parseInt($("#popup-content").css("height"),10) - 10;
+		// newX = window.innerWidth - parseInt($("#popup-content").css("width"),10) - 30;
+
+
+		document.getElementById('popup-content').style.left = newX + "px";
+		document.getElementById('popup-content').style.top = newY + "px";
+
+		highlightClicked(clickedZone);
+	}
+
 	function showBeaconPopup(x, y) {
 		$("#beaconPopup").show();
 
@@ -505,7 +562,7 @@ $(document).ready(function() {
 
 		var newX = x + 40;
 		var newY = y - (parseInt($("#beaconPopupContent").css("height"),10))/2;
-
+		
 		if(newX+(parseInt($("#beaconPopupContent").css("width"),10))+10 > window.innerWidth)
 			newX = x - parseInt($("#beaconPopupContent").css("width"),10) - 40;
 		if(newY < 10)
