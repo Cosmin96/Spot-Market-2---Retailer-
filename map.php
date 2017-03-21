@@ -20,39 +20,20 @@
 	<body>
 
 		<!-- Sidebar -->
+		<script>
+        	var mapImage = new Image();
+        </script>
 		<section id="sidebar">
 			<div class="inner">
 				<nav>
 					<ul>
 						<li><a href="#intro">Upload a map</a></li>
-						<li><a id="zones" href="#zonesMapCanvas">Select Zones</a></li>
-						<li><a id="beaconsNav" href="#beacons">Place your beacons</a></li>
-					</ul>
-				</nav>
-			</div>
-		</section>
-
-		<!-- Wrapper -->
-		<div id="wrapper">
-
-			<!-- Intro -->
-				<section id="intro" class="wrapper style1 fullscreen fade-up">
-					<div class="inner">
-						<h1>Upload your store's map</h1>
-						<form action="map.php" enctype="multipart/form-data" method="post" name="uploadfile">
-                            Uploaded file：
-                            <input type="file" name="upfile" />
-                            <br> 
-                            <input type="submit" value="Upload" />
-                        </form>
-                        <script>
-                        	var mapImage = new Image();
-                        </script>
-                        <?PHP
-                        	if(isset($_FILES['upfile']))
-	                        {
-	                        	if(is_uploaded_file($_FILES['upfile']['tmp_name'])){
-	                
+						<?PHP
+							$ok = 0;
+		                	if(isset($_FILES['upfile']))
+		                    {
+		                    	if(is_uploaded_file($_FILES['upfile']['tmp_name'])){
+		            
 		                            //save the uploaded file information
 		                            $name=$_FILES["upfile"]["name"];//Upload file name
 		                            $type=$_FILES["upfile"]["type"];//Upload file type 
@@ -90,17 +71,14 @@
 		        
 		                                switch ($error) {
 		                                    case 0:
-		                    ?>         
-		                                        Upload successfully!
-		                                        <br>Preview:<br><br>
-		                                        <canvas id="zonesMapCanvas" class="canvas"></canvas>
-											    <script>
-											 
-											        mapImage.src = <?PHP echo "\"files/".$name."\""; ?>;
-											    </script>
-											    <br><br>
-					  							<a id="submitZonesButton" class="button">Submit</a>
-		                    <?php
+		                                    	$ok = 1;
+		                ?>
+		                						<li><a id="zonesNav" href="#zones">Select zones</a></li>
+		                						<li><a id="beaconsNav" href="#beacons" style="display: none">Place your beacons</a></li>
+		                						<script>
+		                							document.getElementById('zonesNav').click();
+		                						</script>
+		                <?php
 		                                        break;
 		                                    case 1:
 		                                        echo "Exceed file size, set in php.ini file";
@@ -124,45 +102,83 @@
 		                        }
 		                    }
 		                ?>
-		                
-		                <br>
-					</div>
-				</section>
+					</ul>
+				</nav>
+			</div>
+		</section>
 
-				<section id="beacons" class="wrapper style1 fullscreen fade-up" style="display: none">
+		<!-- Wrapper -->
+		<div id="wrapper">
+
+			<!-- Intro -->
+				<section id="intro" class="wrapper style1 fullscreen fade-up">
 					<div class="inner">
-						<h1>Place your beacons:</h1>
-						<br>
-						<canvas id="beaconsMapCanvas" class="canvas"></canvas>
-					</div>
+						<h1>Upload your store's map</h1>
+						<form action="map.php" enctype="multipart/form-data" method="post" name="uploadfile">
+                            Uploaded file：
+                            <input type="file" name="upfile" />
+                            <br> 
+                            <input type="submit" value="Upload" />
+                        </form>
+                    </div>
 				</section>
+                <?php
+                	if($ok == 1) {
+                ?>       
+                		<br>
 
-			
+						<section id="zones" class="wrapper style1 fullscreen fade-up">
+							<div class="inner">
+								<h1>Select the zones:</h1>
+								<br>
+		                        <canvas id="zonesMapCanvas" class="canvas"></canvas>
+							    <script>
+							        mapImage.src = <?PHP echo "\"files/".$name."\""; ?>;
+							    </script>
+							    <br><br>
+								<a id="submitZonesButton" class="button">Submit</a>
+							</div>
+						</section>
+		                
+				        <br>
 
-				<div id="popup" class="modal">
-					<div id="popup-content" class="modal-content">
-				  		<center>
-				  			What is this zone's number?
-				  			<br><br>
-				  			<input id="zoneNoInput" type="text">
-				  			<br>
-				  			<a id="saveZoneNoButton" class="button">Save</a>
-				  		</center>
-				  	</div>
-				</div>
+						<section id="beacons" class="wrapper style1 fullscreen fade-up" style="display: none">
+							<div class="inner">
+								<h1>Place your beacons:</h1>
+								<br>
+								<canvas id="beaconsMapCanvas" class="canvas"></canvas>
+								<br><br>
+								<a id="submitZonesButton" class="button">Save</a>
+							</div>
+						</section>
 
-				<div id="beaconPopup" class="modal">
-					<div id="beaconPopupContent" class="modal-content">
-				  		<center>
-				  			What is this beacon's id?
-				  			<br><br>
-				  			<input id="beaconIdInput" type="text">
-				  			<br>
-				  			<a id="saveBeaconButton" class="button">Save</a>
-				  			<a id="deleteBeaconButton" class="button">Delete Beacon</a>
-				  		</center>
-				  	</div>
-				</div>
+						<div id="popup" class="modal">
+							<div id="popup-content" class="modal-content">
+						  		<center>
+						  			What is this zone's number?
+						  			<br><br>
+						  			<input id="zoneNoInput" type="text">
+						  			<br>
+						  			<a id="saveZoneNoButton" class="button">Save</a>
+						  		</center>
+						  	</div>
+						</div>
+
+						<div id="beaconPopup" class="modal">
+							<div id="beaconPopupContent" class="modal-content">
+						  		<center>
+						  			What is this beacon's id?
+						  			<br><br>
+						  			<input id="beaconIdInput" type="text">
+						  			<br>
+						  			<a id="saveBeaconButton" class="button">Save</a>
+						  			<a id="deleteBeaconButton" class="button">Delete Beacon</a>
+						  		</center>
+						  	</div>
+						</div>
+				<?php
+					}
+				?>
 
 		</div>
 
