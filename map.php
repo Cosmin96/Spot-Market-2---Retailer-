@@ -119,10 +119,10 @@
                             <input type="file" name="upfile"/>
                             <br>
                             Store's height in meters:
-                            <input type="number" name="length"/>
+                            <input class="inputcolor" type="number" name="length"/>
                             <br> 
                             Store's width in meters:
-                            <input type="number" name="width"/>
+                            <input class="inputcolor" type="number" name="width"/>
                             <br> 
                             <input type="submit" value="Upload" />
                         </form>

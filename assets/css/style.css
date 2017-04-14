@@ -28,6 +28,6 @@
 	font-weight: bold; 
 }
 
-input[type=number] {
+.inputcolor {
 	color: rgba(0, 0, 0, 0.55);
 }
