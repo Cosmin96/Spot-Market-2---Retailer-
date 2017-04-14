@@ -116,7 +116,13 @@
 						<h1>Upload your store's map</h1>
 						<form action="map.php" enctype="multipart/form-data" method="post" name="uploadfile">
                             Uploaded file：
-                            <input type="file" name="upfile" />
+                            <input type="file" name="upfile"/>
+                            <br>
+                            Store's height in meters:
+                            <input type="number" name="length"/>
+                            <br> 
+                            Store's width in meters:
+                            <input type="number" name="width"/>
                             <br> 
                             <input type="submit" value="Upload" />
                         </form>
@@ -148,7 +154,7 @@
 								<br>
 								<canvas id="beaconsMapCanvas" class="canvas"></canvas>
 								<br><br>
-								<a id="submitZonesButton" class="button">Save</a>
+								<a id="submitBeaconsButton" class="button">Save</a>
 							</div>
 						</section>
 

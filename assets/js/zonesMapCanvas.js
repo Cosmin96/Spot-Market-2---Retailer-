@@ -107,10 +107,11 @@ $(document).ready(function() {
 		}
 
 		var fileNameLength = mapImage.src.lastIndexOf('.') - mapImage.src.lastIndexOf('/') - 1;
-		var fileName = mapImage.src.substr(mapImage.src.lastIndexOf('/')+1, fileNameLength); 
+		var fileName = mapImage.src.substr(mapImage.src.lastIndexOf('/')+1, fileNameLength);
+		fileName = fileName + "_zones.csv";
 
-		$.post("assets/requests/csv.php",{
-            zonesString: str,
+		$.post("assets/requests/write_csv.php",{
+            csvContent: str,
             fileName: fileName
         }).done(function( response ) {
         	document.getElementById('beaconsNav').style.display = 'block';
@@ -118,6 +119,26 @@ $(document).ready(function() {
         	numBeacons = 0;
         	drawBeaconMap();
             $("#beaconsNav").click();
+        });    
+		//closePopup();
+	});
+
+	$("#submitBeaconsButton").click(function() {
+
+		var str = "xPos, yPos\n";
+		for(var i=1; i<=numBeacons; i++){
+			str = str + beacons[i].pos.x + ", " + beacons[i].pos.y + "\n";
+		}
+
+		var fileNameLength = mapImage.src.lastIndexOf('.') - mapImage.src.lastIndexOf('/') - 1;
+		var fileName = mapImage.src.substr(mapImage.src.lastIndexOf('/')+1, fileNameLength); 
+		fileName = fileName + "_beacons.csv";
+
+		$.post("assets/requests/write_csv.php",{
+            csvContent: str,
+            fileName: fileName
+        }).done(function( response ) {
+        	
         });    
 		//closePopup();
 	});
@@ -130,12 +151,16 @@ $(document).ready(function() {
 		var y = event.pageY - rect.top + bodyRect.top;
 		x = x*document.getElementById("beaconsMapCanvas").width/(rect.right-rect.left);
 		y = y*document.getElementById("beaconsMapCanvas").height/(rect.bottom-rect.top);
+		
+		var r = beaconsContext.getImageData(x, y, 1, 1).data[0];
+		var g = beaconsContext.getImageData(x, y, 1, 1).data[1];
+		var b = beaconsContext.getImageData(x, y, 1, 1).data[2];
 		var alpha = beaconsContext.getImageData(x, y, 1, 1).data[3];
 		//console.log(x+" "+y+" "+alpha);
 
 		var pos = {x: x, y: y};
 
-		if(alpha == 255){
+		if(alpha == 255 && !(r==255 && g==255 && b==255)){
 
 			for(var i = 1; i <= numBeacons; i++){
 				if(dist(beacons[i].pos, pos) < beaconCircleRadius){
