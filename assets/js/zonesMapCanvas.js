@@ -1,3 +1,5 @@
+// Made by: Tudor Nica
+
 $(document).ready(function() {
 
 	const beaconCircleRadius = 5;
