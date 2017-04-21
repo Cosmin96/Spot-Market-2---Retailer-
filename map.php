@@ -63,8 +63,17 @@
 		            
 		                                $error=$_FILES["upfile"]["error"];//return value after upload
 		        
-		                                //move the temparary file path to a specific path
-		                                $destination="files/".$name;
+		                                //move the temporary file path to a specific path
+		                                $arr = explode(".", $name, 2);
+										$folderName = $arr[0];
+										if (!file_exists('files/'.$folderName))
+											mkdir('files/'.$folderName, 0777, true);
+
+										$csvContent = "height, width\n".((string)$_POST["height"]).", ".((string)$_POST["width"]);
+										$csvFile = fopen('files/'.$folderName."/".$folderName."_size.csv", 'w');
+										fwrite($csvFile, $csvContent);
+
+		                                $destination="files/".$folderName."/".$name;
 		                                move_uploaded_file($tmp_name,$destination);
 		                                $isMoved = move_uploaded_file($tmp_name,$destination);
 		                                echo $isMoved;
@@ -116,9 +125,15 @@
 						<h1>Upload your store's map</h1>
 						<form action="map.php" enctype="multipart/form-data" method="post" name="uploadfile">
                             Uploaded file：
-                            <input type="file" name="upfile" />
+                            <input type="file" name="upfile">
+                            <br>
+                            Store's height in meters:
+                            <input type="number" name="height" value=<?PHP echo $_POST["height"]?>>
                             <br> 
-                            <input type="submit" value="Upload" />
+                            Store's width in meters:
+                            <input type="number" name="width" value=<?PHP echo $_POST["width"]?>>
+                            <br> 
+                            <input type="submit" value="Upload">
                         </form>
                     </div>
 				</section>
@@ -133,7 +148,7 @@
 								<br>
 		                        <canvas id="zonesMapCanvas" class="canvas"></canvas>
 							    <script>
-							        mapImage.src = <?PHP echo "\"files/".$name."\""; ?>;
+							        mapImage.src = <?PHP echo "\"files/".$folderName."/".$name."\""; ?>;
 							    </script>
 							    <br><br>
 								<a id="submitZonesButton" class="button">Submit</a>
@@ -148,7 +163,7 @@
 								<br>
 								<canvas id="beaconsMapCanvas" class="canvas"></canvas>
 								<br><br>
-								<a id="submitZonesButton" class="button">Save</a>
+								<a id="submitBeaconsButton" class="button">Save</a>
 							</div>
 						</section>
 
@@ -167,9 +182,10 @@
 						<div id="beaconPopup" class="modal">
 							<div id="beaconPopupContent" class="modal-content">
 						  		<center>
-						  			What is this beacon's id?
+						  			What is this beacon's major and minor?
 						  			<br><br>
-						  			<input id="beaconIdInput" type="text">
+						  			<input id="beaconMajor" type="text" placeholder="Major">
+						  			<input id="beaconMinor" type="text" placeholder="Minor">
 						  			<br>
 						  			<a id="saveBeaconButton" class="button">Save</a>
 						  			<a id="deleteBeaconButton" class="button">Delete Beacon</a>

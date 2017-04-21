@@ -1,7 +1,8 @@
 $(document).ready(function() {
 
 	const beaconCircleRadius = 5;
-	const beaconRangeRadius = 50;
+	var beaconRangeRadius;
+	const beaconDefaultRadiusMeters = 50;
 	const transparencyLevel = 0.3;
 	var numBeacons = 0;
 	var beacons = [];
@@ -15,6 +16,11 @@ $(document).ready(function() {
 	var highlightedZone = -1;
 	var clickedZone = -1;
 
+	var xmin = 99999999;
+	var ymin = 99999999;
+	var xmax = 0;
+	var ymax = 0;
+
     mapImage.onload = function() {
     	canvas = document.getElementById("zonesMapCanvas");
     	context = canvas.getContext('2d');
@@ -22,6 +28,7 @@ $(document).ready(function() {
     	document.getElementById("zonesMapCanvas").height = mapImage.height;
     	context.drawImage(mapImage, 0, 0);
     	detectZones();
+    	beaconRangeRadius = beaconDefaultRadiusMeters * (xmax - xmin) / document.getElementsByName("width")[0].value;
     };
 
     $(document).mousemove(function() {
@@ -34,8 +41,6 @@ $(document).ready(function() {
 		x = x*document.getElementById("zonesMapCanvas").width/(rect.right-rect.left);
 		y = y*document.getElementById("zonesMapCanvas").height/(rect.bottom-rect.top);
 		var alpha = context.getImageData(x, y, 1, 1).data[3];
-		
-		//console.log(x + " " + y);
 		
 		if(alpha !== 0 && clickedZone == -1){
 
@@ -92,25 +97,36 @@ $(document).ready(function() {
 					zones[j] = aux;
 				}
 			}
-		var str = "Number of vertices, Vertices' coordinates, Zone ID\n";
-		for(var i=0; i<noOfZones; i++){
-			str = str + zones[i].vertices.length + ", ";
-			for(j=0; j<zones[i].vertices.length; j++){
-				str = str + zones[i].vertices[j].x + ", " + zones[i].vertices[j].y + ", ";
-			}
-			str = str + zones[i].no + "\n";
-			// var x1 = zones[i].x1 / canvas.width;
-			// var y1 = zones[i].y1 / canvas.height;
-			// var x2 = zones[i].x2 / canvas.width;
-			// var y2 = zones[i].y2 / canvas.height;
-			// str = str+x1+", "+y1+", "+x2+", "+y2+", "+zones[i].no+"\n"; 
-		}
 
 		var fileNameLength = mapImage.src.lastIndexOf('.') - mapImage.src.lastIndexOf('/') - 1;
-		var fileName = mapImage.src.substr(mapImage.src.lastIndexOf('/')+1, fileNameLength); 
+		var folderName = mapImage.src.substr(mapImage.src.lastIndexOf('/')+1, fileNameLength);
+		var fileName = folderName + "_ratio.csv";
+		var str = "ratio\n" + (parseInt((xmax - xmin) / document.getElementsByName("width")[0].value)).toString();
+		
+		$.post("assets/requests/write_csv.php",{
+            csvContent: str,
+            folderName: folderName,
+            fileName: fileName
+        }).done(function( response ) {
+        	
+        });
 
-		$.post("assets/requests/csv.php",{
-            zonesString: str,
+		str = "Zone ID, Number of vertices, Vertices' coordinates\n";
+		for(var i=0; i<noOfZones; i++){
+			str = str + zones[i].no + ", " + zones[i].vertices.length + ", ";
+			for(j=0; j<zones[i].vertices.length; j++){
+				str = str + zones[i].vertices[j].x + ", " + zones[i].vertices[j].y;
+				if(j<zones[i].vertices.length-1)
+					str = str + ", ";
+			}
+			str = str + "\n";
+		}
+
+		fileName = folderName + "_zones.csv";
+
+		$.post("assets/requests/write_csv.php",{
+            csvContent: str,
+            folderName: folderName,
             fileName: fileName
         }).done(function( response ) {
         	document.getElementById('beaconsNav').style.display = 'block';
@@ -118,8 +134,27 @@ $(document).ready(function() {
         	numBeacons = 0;
         	drawBeaconMap();
             $("#beaconsNav").click();
-        });    
-		//closePopup();
+        });
+	});
+
+	$("#submitBeaconsButton").click(function() {
+
+		var str = "major, minor, xPos, yPos\n";
+		for(var i=1; i<=numBeacons; i++){
+			str = str + beacons[i].id + ", " + beacons[i].pos.x + ", " + beacons[i].pos.y + "\n";
+		}
+
+		var fileNameLength = mapImage.src.lastIndexOf('.') - mapImage.src.lastIndexOf('/') - 1;
+		var folderName = mapImage.src.substr(mapImage.src.lastIndexOf('/')+1, fileNameLength);
+		fileName = folderName + "_beacons.csv";
+
+		$.post("assets/requests/write_csv.php",{
+            csvContent: str,
+            folderName: folderName,
+            fileName: fileName
+        }).done(function( response ) {
+        	
+        });
 	});
 
 	$("#beaconsMapCanvas").click(function() {
@@ -130,12 +165,16 @@ $(document).ready(function() {
 		var y = event.pageY - rect.top + bodyRect.top;
 		x = x*document.getElementById("beaconsMapCanvas").width/(rect.right-rect.left);
 		y = y*document.getElementById("beaconsMapCanvas").height/(rect.bottom-rect.top);
+		
+		var r = beaconsContext.getImageData(x, y, 1, 1).data[0];
+		var g = beaconsContext.getImageData(x, y, 1, 1).data[1];
+		var b = beaconsContext.getImageData(x, y, 1, 1).data[2];
 		var alpha = beaconsContext.getImageData(x, y, 1, 1).data[3];
-		//console.log(x+" "+y+" "+alpha);
 
 		var pos = {x: x, y: y};
 
-		if(alpha == 255){
+		if(alpha == 255 && !(r==255 && g==255 && b==255)){
+
 			for(var i = 1; i <= numBeacons; i++){
 				if(dist(beacons[i].pos, pos) < beaconCircleRadius){
 					clickedBeacon = i;
@@ -148,7 +187,6 @@ $(document).ready(function() {
 
 			drawBeaconMap();
 		}
-		//closePopup();
 	});
 
 	function addBeacon(pos){
@@ -162,14 +200,20 @@ $(document).ready(function() {
 	  	return Math.sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));
 	}
 
-	$("#beaconIdInput").keyup(function(event){
+	$("#beaconMajor").keyup(function(event){
+	    if(event.keyCode == 13){
+	        $("#saveBeaconButton").click();
+	    }
+	});
+
+	$("#beaconMinor").keyup(function(event){
 	    if(event.keyCode == 13){
 	        $("#saveBeaconButton").click();
 	    }
 	});
 
 	$("#saveBeaconButton").click(function() {
-		beacons[clickedBeacon].id = document.getElementById("beaconIdInput").value;
+		beacons[clickedBeacon].id = document.getElementById("beaconMajor").value + ", " + document.getElementById("beaconMinor").value;
 		for(var i=1; i<=numBeacons; i++)
 			if(beacons[i].id == beacons[clickedBeacon].id && i != clickedBeacon)
 				beacons[i].id = "";
@@ -193,24 +237,14 @@ $(document).ready(function() {
     	beaconsContext.clearRect(0, 0, beaconsCanvas.width, beaconsCanvas.height);
 
     	beaconsContext.globalAlpha = 1;
-    	//beaconsContext.drawImage(mapImage, 0, 0);
 
-    	//beaconsContext.globalCompositeOperation = 'source-atop';
     	beaconsContext.globalAlpha = transparencyLevel;
 
     	for(var i=1; i<=numBeacons; i++) {
 			beaconsContext.beginPath();
-		    beaconsContext.arc(beacons[i].pos.x, beacons[i].pos.y, beaconCircleRadius*10, 0, 2 * Math.PI, false);
+		    beaconsContext.arc(beacons[i].pos.x, beacons[i].pos.y, beaconRangeRadius, 0, 2 * Math.PI, false);
 		    beaconsContext.fillStyle = 'red';
-		    //beaconsContext.lineWidth = 0;
 		    beaconsContext.fill();
-		    //beaconsContext.stroke();
-
-		    console.log(beaconsContext.getImageData(beacons[i].pos.x, beacons[i].pos.y, 1, 1).data[0]);
-		    console.log(beaconsContext.getImageData(beacons[i].pos.x, beacons[i].pos.y, 1, 1).data[1]);
-		    console.log(beaconsContext.getImageData(beacons[i].pos.x, beacons[i].pos.y, 1, 1).data[2]);
-		    console.log(beaconsContext.getImageData(beacons[i].pos.x, beacons[i].pos.y, 1, 1).data[3]);
-		    console.log(" ");
 		}
 
 		for(var i=1; i<numBeacons; i++)
@@ -218,12 +252,12 @@ $(document).ready(function() {
 				if(dist(beacons[i].pos, beacons[j].pos) < 2*beaconRangeRadius) {
 					beaconsContext.save();
 					beaconsContext.beginPath();
-		    		beaconsContext.arc(beacons[i].pos.x, beacons[i].pos.y, beaconCircleRadius*10, 0, 2 * Math.PI, false);
+		    		beaconsContext.arc(beacons[i].pos.x, beacons[i].pos.y, beaconRangeRadius, 0, 2 * Math.PI, false);
 		    		beaconsContext.closePath();
 		    		beaconsContext.clip();
 
 		    		beaconsContext.beginPath();
-		    		beaconsContext.arc(beacons[j].pos.x, beacons[j].pos.y, beaconCircleRadius*10, 0, 2 * Math.PI, false);
+		    		beaconsContext.arc(beacons[j].pos.x, beacons[j].pos.y, beaconRangeRadius, 0, 2 * Math.PI, false);
 		    		beaconsContext.closePath();
 		    		beaconsContext.clip();
 
@@ -243,17 +277,17 @@ $(document).ready(function() {
 						if(dist(beacons[i].pos, beacons[k].pos) < 2*beaconRangeRadius && dist(beacons[j].pos, beacons[k].pos) < 2*beaconRangeRadius) {
 							beaconsContext.save();
 							beaconsContext.beginPath();
-				    		beaconsContext.arc(beacons[i].pos.x, beacons[i].pos.y, beaconCircleRadius*10, 0, 2 * Math.PI, false);
+				    		beaconsContext.arc(beacons[i].pos.x, beacons[i].pos.y, beaconRangeRadius, 0, 2 * Math.PI, false);
 				    		beaconsContext.closePath();
 				    		beaconsContext.clip();
 
 				    		beaconsContext.beginPath();
-				    		beaconsContext.arc(beacons[j].pos.x, beacons[j].pos.y, beaconCircleRadius*10, 0, 2 * Math.PI, false);
+				    		beaconsContext.arc(beacons[j].pos.x, beacons[j].pos.y, beaconRangeRadius, 0, 2 * Math.PI, false);
 				    		beaconsContext.closePath();
 				    		beaconsContext.clip();
 
 				    		beaconsContext.beginPath();
-				    		beaconsContext.arc(beacons[k].pos.x, beacons[k].pos.y, beaconCircleRadius*10, 0, 2 * Math.PI, false);
+				    		beaconsContext.arc(beacons[k].pos.x, beacons[k].pos.y, beaconRangeRadius, 0, 2 * Math.PI, false);
 				    		beaconsContext.closePath();
 				    		beaconsContext.clip();
 
@@ -295,12 +329,9 @@ $(document).ready(function() {
 					createZone(j, i);
 				}
 			}
-		// print zones for testing
 	}
 
 	function createZone(x, y) {
-
-		//console.log(x + " " + y);
 
 		// array for changing direction on the map: 0 for left, 1 for up, 2 for right, 3 for down
 		var dir = [{x: -1, y: 0}, {x: 0, y: -1}, {x: 1, y: 0}, {x: 0, y: 1}];
@@ -319,7 +350,6 @@ $(document).ready(function() {
 		var noOfVertices = 0;
 		
 		zones.push({no: noOfZones+1, vertices: []});
-		//zones[noOfZones] = [];
 
 		do {
 			for(var d=-1; d<=2; d++) {
@@ -329,23 +359,22 @@ $(document).ready(function() {
 				}
 			}
 			if(newDir != currDir){
-				//console.log(noOfVertices + " " + hexColor + " " + getPixelHexColor(x+dir[currDir].x, y+dir[currDir].y));
-				//console.log(x + " " + y + " " + cx + " " + cy);
-				//console.log(currDir + " " + newDir);
 				noOfVertices++;
 				currDir = newDir;
 				zones[noOfZones].vertices.push({x: x, y: y});
 			}
+			if(x < xmin)
+				xmin = x;
+			if(x > xmax)
+				xmax = x;
+			if(y < ymin)
+				ymin = y;
+			if(y > ymax)
+				ymax = y;
 			x = x+dir[currDir].x;
 			y = y+dir[currDir].y;
 
 		} while((x!=cx || y!=cy));
-
-		/*console.log(zones[noOfZones].vertices.length);
-		for(i=0; i<noOfVertices; i++){
-			//console.log(i);
-			console.log(noOfZones + ": " + zones[noOfZones].vertices[i].x + ", " + zones[noOfZones].vertices[i].y);
-		}*/
 
 		noOfZones++;
 	}
@@ -394,15 +423,12 @@ $(document).ready(function() {
 			zone = zones[zoneNo];
 			context.globalAlpha = 0.1;
 		    context.fillStyle = "black"; 
-		    //context.strokeStyle = "black"; 
 		    context.beginPath();
 		    context.moveTo(zones[zoneNo].vertices[0].x, zones[zoneNo].vertices[0].y);
 		    for(var i=1; i<zones[zoneNo].vertices.length; i++)
 		    	context.lineTo(zones[zoneNo].vertices[i].x, zones[zoneNo].vertices[i].y);
 		    context.closePath();
 		    context.fill();
-		    //context.stroke();
-			//context.fillRect(zone.x1, zone.y1, zone.x2-zone.x1, zone.y2-zone.y1); 
 		}
 	}
 
@@ -435,15 +461,11 @@ $(document).ready(function() {
 
     	beaconsContext.clearRect(0, 0, beaconsCanvas.width, beaconsCanvas.height);
 
-    	beaconsContext.globalAlpha = 1;
-    	//beaconsContext.drawImage(mapImage, 0, 0);
-
-    	//beaconsContext.globalCompositeOperation = 'source-atop';
     	beaconsContext.globalAlpha = transparencyLevel;
 
     	for(var i=1; i<=numBeacons; i++) {
 			beaconsContext.beginPath();
-		    beaconsContext.arc(beacons[i].pos.x, beacons[i].pos.y, beaconCircleRadius*10, 0, 2 * Math.PI, false);
+		    beaconsContext.arc(beacons[i].pos.x, beacons[i].pos.y, beaconRangeRadius, 0, 2 * Math.PI, false);
 		    beaconsContext.fillStyle = 'red';
 		    beaconsContext.fill();
 		}
@@ -453,12 +475,12 @@ $(document).ready(function() {
 				if(dist(beacons[i].pos, beacons[j].pos) < 2*beaconRangeRadius) {
 					beaconsContext.save();
 					beaconsContext.beginPath();
-		    		beaconsContext.arc(beacons[i].pos.x, beacons[i].pos.y, beaconCircleRadius*10, 0, 2 * Math.PI, false);
+		    		beaconsContext.arc(beacons[i].pos.x, beacons[i].pos.y, beaconRangeRadius, 0, 2 * Math.PI, false);
 		    		beaconsContext.closePath();
 		    		beaconsContext.clip();
 
 		    		beaconsContext.beginPath();
-		    		beaconsContext.arc(beacons[j].pos.x, beacons[j].pos.y, beaconCircleRadius*10, 0, 2 * Math.PI, false);
+		    		beaconsContext.arc(beacons[j].pos.x, beacons[j].pos.y, beaconRangeRadius, 0, 2 * Math.PI, false);
 		    		beaconsContext.closePath();
 		    		beaconsContext.clip();
 
@@ -478,17 +500,17 @@ $(document).ready(function() {
 						if(dist(beacons[i].pos, beacons[k].pos) < 2*beaconRangeRadius && dist(beacons[j].pos, beacons[k].pos) < 2*beaconRangeRadius) {
 							beaconsContext.save();
 							beaconsContext.beginPath();
-				    		beaconsContext.arc(beacons[i].pos.x, beacons[i].pos.y, beaconCircleRadius*10, 0, 2 * Math.PI, false);
+				    		beaconsContext.arc(beacons[i].pos.x, beacons[i].pos.y, beaconRangeRadius, 0, 2 * Math.PI, false);
 				    		beaconsContext.closePath();
 				    		beaconsContext.clip();
 
 				    		beaconsContext.beginPath();
-				    		beaconsContext.arc(beacons[j].pos.x, beacons[j].pos.y, beaconCircleRadius*10, 0, 2 * Math.PI, false);
+				    		beaconsContext.arc(beacons[j].pos.x, beacons[j].pos.y, beaconRangeRadius, 0, 2 * Math.PI, false);
 				    		beaconsContext.closePath();
 				    		beaconsContext.clip();
 
 				    		beaconsContext.beginPath();
-				    		beaconsContext.arc(beacons[k].pos.x, beacons[k].pos.y, beaconCircleRadius*10, 0, 2 * Math.PI, false);
+				    		beaconsContext.arc(beacons[k].pos.x, beacons[k].pos.y, beaconRangeRadius, 0, 2 * Math.PI, false);
 				    		beaconsContext.closePath();
 				    		beaconsContext.clip();
 
@@ -505,7 +527,7 @@ $(document).ready(function() {
 		for(var i=1; i<=numBeacons; i++) 
 			if(i == beaconIndex){
 				beaconsContext.beginPath();
-			    beaconsContext.arc(beacons[i].pos.x, beacons[i].pos.y, beaconCircleRadius*10, 0, 2 * Math.PI, false);
+			    beaconsContext.arc(beacons[i].pos.x, beacons[i].pos.y, beaconRangeRadius, 0, 2 * Math.PI, false);
 			    beaconsContext.fillStyle = 'yellow';
 			    beaconsContext.fill();
 			}
@@ -544,10 +566,6 @@ $(document).ready(function() {
 		if(newY+parseInt($("#popup-content").css("height"),10)+10 > window.innerHeight)
 			newY = window.innerHeight - parseInt($("#popup-content").css("height"),10) - 10;
 
-		// newY = window.innerHeight - parseInt($("#popup-content").css("height"),10) - 10;
-		// newX = window.innerWidth - parseInt($("#popup-content").css("width"),10) - 30;
-
-
 		document.getElementById('popup-content').style.left = newX + "px";
 		document.getElementById('popup-content').style.top = newY + "px";
 
@@ -557,11 +575,12 @@ $(document).ready(function() {
 	function showBeaconPopup(x, y) {
 		$("#beaconPopup").show();
 
-		document.getElementById("beaconIdInput").value = beacons[clickedBeacon].id;
+		document.getElementById("beaconMajor").value = beacons[clickedBeacon].id.substr(0, beacons[clickedBeacon].id.lastIndexOf(','));
+		document.getElementById("beaconMinor").value = beacons[clickedBeacon].id.substr(beacons[clickedBeacon].id.lastIndexOf(',') + 2);
 
 		var newX = x + 40;
 		var newY = y - (parseInt($("#beaconPopupContent").css("height"),10))/2;
-
+		
 		if(newX+(parseInt($("#beaconPopupContent").css("width"),10))+10 > window.innerWidth)
 			newX = x - parseInt($("#beaconPopupContent").css("width"),10) - 40;
 		if(newY < 10)

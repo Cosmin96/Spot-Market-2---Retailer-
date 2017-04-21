@@ -27,3 +27,7 @@
 	color: #FFFFFF;
 	font-weight: bold; 
 }
+
+input[type=number] {
+	color: rgba(0, 0, 0, 0.55);
+}
