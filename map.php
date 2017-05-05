@@ -128,10 +128,20 @@
                             <input type="file" name="upfile">
                             <br>
                             Store's height in meters:
-                            <input type="number" name="height" value=<?PHP echo $_POST["height"]?>>
+                            <input type="number" name="height" value=
+                            <?PHP 
+	                            if(isset($_POST["height"]))
+	                            	echo $_POST["height"]
+                            ?>
+                            >
                             <br> 
                             Store's width in meters:
-                            <input type="number" name="width" value=<?PHP echo $_POST["width"]?>>
+                            <input type="number" name="width" value=
+                            <?PHP 
+	                            if(isset($_POST["width"]))
+	                            	echo $_POST["width"]
+                            ?>
+                            >
                             <br> 
                             <input type="submit" value="Upload">
                         </form>
